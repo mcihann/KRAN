@@ -102,21 +102,12 @@ Experimental output files, model checkpoints, downloaded data, and other generat
 
 ## Installation
 
-Python **3.10** is recommended. KRAN uses **PyTorch 2.5.1**, NumPy 1.26.4, SciPy, pandas, and scikit-learn. GPU execution requires a compatible PyTorch/CUDA installation, NVIDIA driver, and supported hardware; CPU execution is also supported.
+Python 3.10 is recommended.
+
+Clone or download this repository, navigate to its root directory,
+and install KRAN with the required dependencies:
 
 ```bash
-# Clone the repository, then enter its root directory.
-git clone https://github.com/mcihann/KRAN
-cd <repository>
-
-python -m venv .venv
-
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-
-# Linux / macOS:
-# source .venv/bin/activate
-
 python -m pip install --upgrade pip
 python -m pip install -e ".[experiments,test]"
 ```
