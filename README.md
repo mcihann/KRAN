@@ -1,3 +1,4 @@
+
 # KRAN: Knothe-Rosenblatt Additive Network
 
 **A monotone transport–additive neural network for interpretable tabular classification and regression.**
@@ -6,88 +7,45 @@ KRAN combines a learned **Knothe-Rosenblatt-inspired monotone triangular transfo
 
 **Author:** Mücahit Cihan · Department of Electrical and Electronics Engineering, Konya Technical University, Türkiye.
 
+## Architecture
 
-## Model Architecture
-
-KRAN follows a **supervised transport-then-additive architecture** that combines a Knothe–Rosenblatt-inspired monotone triangular transformation with a strictly additive spline prediction head. The architecture supports both classification and regression while maintaining exact additive decomposability in the transported coordinate space.
+KRAN follows a **transport-then-additive** design. The KR-MonoMap learns a supervised, monotone triangular transformation of the preprocessed inputs, and the spline-based GAM head produces an explicitly additive prediction in the transported coordinate space.
 
 ```mermaid
 flowchart LR
-    A["Input Features<br/>x ∈ R^d"]
-    B["Preprocessing<br/>Encoding and MinMax Scaling"]
+    X["Input<br/>x"]
 
-    subgraph TRANSPORT["KR-MonoMap"]
-        direction TB
-        C["Conditional Neural Networks<br/>h_j(x_1, ..., x_j)"]
-        D["Positive Integrand<br/>Softplus Activation"]
-        E["Normalized Integrals<br/>Trapezoidal Quadrature"]
-        F["Monotone Triangular Map<br/>z_j = T_j(x_1, ..., x_j)"]
-        C --> D --> E --> F
+    subgraph KR["Knothe-Rosenblatt-inspired transport"]
+        T["Monotone triangular map<br/>x → z"]
     end
 
-    Z["Transported Coordinates<br/>z ∈ [0,1]^d"]
-
-    subgraph ADDITIVE["Additive Spline GAM Head"]
-        direction TB
-        G["SplineExpansion<br/>Local Hat-Spline Basis"]
-        H["Feature-wise Functions<br/>g_j(z_j)"]
-        I["Strictly Additive Aggregation<br/>b + Σ g_j(z_j)"]
-        G --> H --> I
+    subgraph GAM["Additive spline GAM head"]
+        direction LR
+        S["Spline basis<br/>φ(zⱼ)"]
+        A["Additive GAM<br/>b + Σⱼ gⱼ(zⱼ)"]
+        S --> A
     end
 
-    J["Prediction<br/>Regression Output or Class Logits"]
+    Y["Output<br/>ŷ / logits"]
 
-    A --> B --> C
-    F --> Z --> G
-    I --> J
+    X --> T
+    T --> S
+    A --> Y
 
-    classDef input fill:#E8F4EA,stroke:#32834B,color:#173A24,stroke-width:1.5px;
-    classDef preprocessing fill:#F1F5F9,stroke:#64748B,color:#172033,stroke-width:1.5px;
-    classDef transport fill:#DBEAFE,stroke:#2563EB,color:#152C52,stroke-width:1.5px;
-    classDef latent fill:#EDE9FE,stroke:#7C3AED,color:#34205E,stroke-width:1.5px;
-    classDef additive fill:#FFEDD5,stroke:#D97706,color:#663B12,stroke-width:1.5px;
-    classDef output fill:#FCE7F3,stroke:#BE185D,color:#70123D,stroke-width:1.5px;
+    classDef input fill:#DCFCE7,stroke:#15803D,color:#14532D,stroke-width:1.5px;
+    classDef transport fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A,stroke-width:1.5px;
+    classDef spline fill:#EEF2FF,stroke:#6366F1,color:#312E81,stroke-width:1.5px;
+    classDef additive fill:#FFEDD5,stroke:#C2410C,color:#7C2D12,stroke-width:1.5px;
+    classDef output fill:#FCE7F3,stroke:#BE185D,color:#831843,stroke-width:1.5px;
 
-    class A input;
-    class B preprocessing;
-    class C,D,E,F transport;
-    class Z latent;
-    class G,H,I additive;
-    class J output;
+    class X input;
+    class T transport;
+    class S spline;
+    class A additive;
+    class Y output;
 ```
 
-### Architectural Components
-
-**1. Input Preprocessing**
-
-Input features are converted into numerical representations and scaled to the unit interval. All preprocessing transformations are fitted exclusively on the corresponding training partition to prevent data leakage.
-
-**2. KR-MonoMap: Monotone Triangular Transport**
-
-The KR-MonoMap transforms the preprocessed input vector into a new coordinate system using normalized integrals of strictly positive conditional functions. Each transported coordinate depends only on its corresponding input feature and preceding features in the specified ordering.
-
-The positive-integrand construction ensures coordinate-wise monotonicity in the continuous formulation. Numerical integration is performed using trapezoidal quadrature.
-
-**3. Spline Basis Expansion**
-
-Each transported coordinate is independently expanded using local, piecewise-linear hat-spline basis functions. This operation preserves the feature-wise organization of the transported representation without introducing cross-coordinate mixing.
-
-**4. Strictly Additive Prediction Head**
-
-The additive head combines the spline-based univariate functions through summation. Regression predictions and classification logits are exactly decomposable into transported-coordinate contributions.
-
-**5. Model Output**
-
-For regression, KRAN produces continuous predictions. For classification, the additive head produces class logits, which are converted into class probabilities using softmax.
-
-### Interpretability
-
-KRAN provides exact additive decomposition in the transported coordinate space. However, this property does not imply strict additivity with respect to the original input features.
-
-Because the transport is triangular, modifying an original feature may influence its corresponding transported coordinate and subsequent coordinates. Accordingly, original-feature response analysis distinguishes **direct coordinate contributions** from **downstream transport contributions**.
-
-These components describe the computational behavior of the trained model and should not be interpreted as causal effects.
-
+The transport produces $z=(z_1,\ldots,z_d)$, where $z_j=T_j(x_1,\ldots,x_j)$ depends only on the first $j$ input coordinates. Each $z_j$ is expanded independently into local spline basis functions $\phi_m(z_j)$, and the corresponding effect $g_j(z_j)$ contributes additively to a regression output or a class logit. The diagram represents the **main additive KRAN model**, not the optional non-additive head variants used in architectural experiments.
 
 ## Method
 
@@ -133,6 +91,7 @@ KRAN/
 ├── scripts/               Run-integrity checking utility
 ├── tests/                 Unit and protocol tests
 ├── .github/workflows/     Continuous-integration tests
+├── .gitignore
 ├── README.md
 ├── CITATION.cff
 ├── pyproject.toml
@@ -147,12 +106,14 @@ Python **3.10** is recommended. KRAN uses **PyTorch 2.5.1**, NumPy 1.26.4, SciPy
 
 ```bash
 # Clone the repository, then enter its root directory.
-git clone https://github.com/mcihann/KRAN
+git clone https://github.com/<owner>/<repository>.git
 cd <repository>
 
 python -m venv .venv
+
 # Windows PowerShell:
 # .venv\Scripts\Activate.ps1
+
 # Linux / macOS:
 # source .venv/bin/activate
 
@@ -196,10 +157,12 @@ config = KRANConfig(
     spline_num_knots=16,
     head_type="additive",
 )
+
 model = KRAN(config).eval()
 
 # Illustration only: in applications, fit preprocessing on the training data.
 x_scaled = torch.rand(4, 8)  # [batch, features], values in [0, 1]
+
 with torch.no_grad():
     prediction, details = model(x_scaled, return_extras=True)
 
@@ -292,6 +255,7 @@ python -m experiments.run_original_feature_responses
 
 # Integrated Gradients, permutation NLL, optional approximate Kernel SHAP
 python -m experiments.run_original_feature_attributions --seed 1042 --steps 1024
+
 # Add --shap to enable the more computationally expensive SHAP comparison.
 
 # Fixed-weight numerical quadrature convergence (requires the selected checkpoint)
