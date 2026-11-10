@@ -112,14 +112,6 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[experiments,test]"
 ```
 
-Replace `<owner>/<repository>` with the actual GitHub location. If you need a GPU-specific PyTorch build, install the appropriate wheel according to the [official PyTorch installation instructions](https://pytorch.org/get-started/locally/) before installing KRAN. The installed PyTorch build, CUDA runtime, GPU, and package versions should be recorded when comparing computational measurements. Some experiment datasets are downloaded from scikit-learn/OpenML on first use and require network access.
-
-To install only the core package and its required dependencies:
-
-```bash
-python -m pip install -e .
-```
-
 ## Quick start
 
 ### End-to-end classification example
