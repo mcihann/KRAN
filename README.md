@@ -6,6 +6,89 @@ KRAN combines a learned **Knothe-Rosenblatt-inspired monotone triangular transfo
 
 **Author:** Mücahit Cihan · Department of Electrical and Electronics Engineering, Konya Technical University, Türkiye.
 
+
+## Model Architecture
+
+KRAN follows a **supervised transport-then-additive architecture** that combines a Knothe–Rosenblatt-inspired monotone triangular transformation with a strictly additive spline prediction head. The architecture supports both classification and regression while maintaining exact additive decomposability in the transported coordinate space.
+
+```mermaid
+flowchart LR
+    A["Input Features<br/>x ∈ R^d"]
+    B["Preprocessing<br/>Encoding and MinMax Scaling"]
+
+    subgraph TRANSPORT["KR-MonoMap"]
+        direction TB
+        C["Conditional Neural Networks<br/>h_j(x_1, ..., x_j)"]
+        D["Positive Integrand<br/>Softplus Activation"]
+        E["Normalized Integrals<br/>Trapezoidal Quadrature"]
+        F["Monotone Triangular Map<br/>z_j = T_j(x_1, ..., x_j)"]
+        C --> D --> E --> F
+    end
+
+    Z["Transported Coordinates<br/>z ∈ [0,1]^d"]
+
+    subgraph ADDITIVE["Additive Spline GAM Head"]
+        direction TB
+        G["SplineExpansion<br/>Local Hat-Spline Basis"]
+        H["Feature-wise Functions<br/>g_j(z_j)"]
+        I["Strictly Additive Aggregation<br/>b + Σ g_j(z_j)"]
+        G --> H --> I
+    end
+
+    J["Prediction<br/>Regression Output or Class Logits"]
+
+    A --> B --> C
+    F --> Z --> G
+    I --> J
+
+    classDef input fill:#E8F4EA,stroke:#32834B,color:#173A24,stroke-width:1.5px;
+    classDef preprocessing fill:#F1F5F9,stroke:#64748B,color:#172033,stroke-width:1.5px;
+    classDef transport fill:#DBEAFE,stroke:#2563EB,color:#152C52,stroke-width:1.5px;
+    classDef latent fill:#EDE9FE,stroke:#7C3AED,color:#34205E,stroke-width:1.5px;
+    classDef additive fill:#FFEDD5,stroke:#D97706,color:#663B12,stroke-width:1.5px;
+    classDef output fill:#FCE7F3,stroke:#BE185D,color:#70123D,stroke-width:1.5px;
+
+    class A input;
+    class B preprocessing;
+    class C,D,E,F transport;
+    class Z latent;
+    class G,H,I additive;
+    class J output;
+```
+
+### Architectural Components
+
+**1. Input Preprocessing**
+
+Input features are converted into numerical representations and scaled to the unit interval. All preprocessing transformations are fitted exclusively on the corresponding training partition to prevent data leakage.
+
+**2. KR-MonoMap: Monotone Triangular Transport**
+
+The KR-MonoMap transforms the preprocessed input vector into a new coordinate system using normalized integrals of strictly positive conditional functions. Each transported coordinate depends only on its corresponding input feature and preceding features in the specified ordering.
+
+The positive-integrand construction ensures coordinate-wise monotonicity in the continuous formulation. Numerical integration is performed using trapezoidal quadrature.
+
+**3. Spline Basis Expansion**
+
+Each transported coordinate is independently expanded using local, piecewise-linear hat-spline basis functions. This operation preserves the feature-wise organization of the transported representation without introducing cross-coordinate mixing.
+
+**4. Strictly Additive Prediction Head**
+
+The additive head combines the spline-based univariate functions through summation. Regression predictions and classification logits are exactly decomposable into transported-coordinate contributions.
+
+**5. Model Output**
+
+For regression, KRAN produces continuous predictions. For classification, the additive head produces class logits, which are converted into class probabilities using softmax.
+
+### Interpretability
+
+KRAN provides exact additive decomposition in the transported coordinate space. However, this property does not imply strict additivity with respect to the original input features.
+
+Because the transport is triangular, modifying an original feature may influence its corresponding transported coordinate and subsequent coordinates. Accordingly, original-feature response analysis distinguishes **direct coordinate contributions** from **downstream transport contributions**.
+
+These components describe the computational behavior of the trained model and should not be interpreted as causal effects.
+
+
 ## Method
 
 Let $x=(x_1,\ldots,x_d)\in[0,1]^d$ denote a preprocessed input vector. KRAN first computes $z=T(x)$ using a lower-triangular map. For coordinate $j$,
