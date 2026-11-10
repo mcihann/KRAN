@@ -64,7 +64,7 @@ Python **3.10** is recommended. KRAN uses **PyTorch 2.5.1**, NumPy 1.26.4, SciPy
 
 ```bash
 # Clone the repository, then enter its root directory.
-git clone https://github.com/<owner>/<repository>.git
+git clone https://github.com/mcihann/KRAN/tree/main
 cd <repository>
 
 python -m venv .venv
