@@ -22,7 +22,7 @@ flowchart LR
     subgraph GAM["Additive spline GAM head"]
         direction LR
         S["Spline basis<br/>φ(zⱼ)"]
-        A["Additive GAM<br/>b + Σⱼ gⱼ(zⱼ)"]
+        A["Additive GAM<br/>Σⱼ gⱼ(zⱼ)"]
         S --> A
     end
 
