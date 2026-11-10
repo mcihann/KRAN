@@ -1,0 +1,9 @@
+numpy==1.26.4
+pandas>=2.0,<3.0
+scipy>=1.10,<2.0
+scikit-learn>=1.4,<2.0
+torch==2.5.1
+pytest>=8,<10
+
+# To reproduce all ten model families install optional experiment dependencies:
+# python -m pip install -e ".[experiments]"

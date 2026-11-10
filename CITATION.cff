@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use KRAN in your research, please cite this software and the associated KRAN paper when available."
+title: "KRAN: The Knothe-Rosenblatt Additive Network for Interpretable Tabular Learning"
+type: software
+authors:
+  - family-names: "Cihan"
+    given-names: "Mücahit"
+version: 1.1.0
